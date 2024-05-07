@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 14.0, *)
 struct ShamsiDatePickerViewModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -15,6 +16,7 @@ struct ShamsiDatePickerViewModifier: ViewModifier {
     }
 }
 
+@available(iOS 14.0, *)
 extension View {
     func shamsiStyle() -> some View {
         self.modifier(ShamsiDatePickerViewModifier())

@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "ShamsiDatePicker",
     platforms: [
-        .iOS(.v13),
+        .iOS(.v14),
         .watchOS(.v6)
     ],
     products: [

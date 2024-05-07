@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 14.0, *)
 public struct ShamsiDatePicker: View {
     
     // MARK: Constants
@@ -39,16 +40,19 @@ public struct ShamsiDatePicker: View {
     let monthScale: CGFloat = 0.37
     let yearScale: CGFloat = 0.33
     #else
-    let dayScale: CGFloat = 0.4
-    let monthScale: CGFloat = 0.3
-    let yearScale: CGFloat = 0.3
+    let dayScale: CGFloat = 0.33
+    let monthScale: CGFloat = 0.34
+    let yearScale: CGFloat = 0.33
     #endif
     
     // MARK: Value Properties
     
     var minDate = Date(timeIntervalSince1970: -2500000000)
     var maxDate: Date? = nil
-    
+    var font: Font
+    var fontColor: Color
+    var headerFont: Font
+    var headerColor: Color
     // MARK: Bindings
     
     @Binding var selectedDate: Date {
@@ -63,10 +67,16 @@ public struct ShamsiDatePicker: View {
     
     // MARK: Initializer
     
-    public init(selectedDate: Binding<Date>, minDate: Date = Date(timeIntervalSince1970: -2500000000), maxDate: Date? = nil) {
+    public init(selectedDate: Binding<Date>, minDate: Date = Date(timeIntervalSince1970: -2500000000), maxDate: Date? = nil, font: Font = .body, fontColor: Color = Color.black
+                , headerFont: Font = .footnote, headerColor: Color = Color.black
+    ) {
         self._selectedDate = selectedDate
         self.minDate = minDate
         self.maxDate = maxDate
+        self.font = font
+        self.fontColor = fontColor
+        self.headerFont = headerFont
+        self.headerColor = headerColor
     }
     
     // MARK: SwiftUI Helper Properties
@@ -96,7 +106,11 @@ public struct ShamsiDatePicker: View {
     var maxYear: Int {
         guard let maxDate = maxDate else { return 2000 }
         let year = persianCalendar.component(.year, from: maxDate)
-        return (year == Int.max) ? year : year + 1
+        return (year == Int.max) ? year : year
+    }
+    
+    var numbers: [Int] {
+        return Array(minYear...maxYear).reversed()
     }
     
     // MARK: SwiftUI Helper Functions
@@ -104,18 +118,23 @@ public struct ShamsiDatePicker: View {
     func dayPicker(daySelection: Binding<Int>, monthSelectionID: Binding<Int>, geometry: GeometryProxy) -> some View {
         Picker("روز", selection: daySelection) {
             ForEach(1...getMonth(id: monthSelectionID.wrappedValue).numberOfDays(in: yearSelectionBinding.wrappedValue), id: \.self) { day in
-                Text("\(day.persian) \(date(bySetting: .day, value: day, of: selectedDate).stringValue ?? "")")
+                Text("\(day.persian)")
                     .id(day)
+                    .font(font)
+                    .foregroundColor(fontColor)
             }
         }
         .frame(maxWidth: geometry.size.width * dayScale)
         .shamsiStyle()
+
     }
     
     func monthPicker(monthSelectionID: Binding<Int>, geometry: GeometryProxy) -> some View {
         Picker("ماه", selection: monthSelectionID) {
             ForEach(1 ... 12, id: \.self) { id in
                 Text(getMonth(id: id).persianName)
+                    .font(font)
+                    .foregroundColor(fontColor)
             }
         }
         .frame(maxWidth: geometry.size.width * monthScale)
@@ -124,8 +143,10 @@ public struct ShamsiDatePicker: View {
     
     func yearPicker(yearSelection: Binding<Int>, geometry: GeometryProxy) -> some View {
         Picker("سال", selection: yearSelection) {
-            ForEach(minYear...maxYear, id: \.self) { year in
+            ForEach(numbers, id: \.self) { year in
                 Text(year.persian)
+                    .font(font)
+                    .foregroundColor(fontColor)
             }
         }
         .frame(maxWidth: geometry.size.width * yearScale)
@@ -161,18 +182,40 @@ public struct ShamsiDatePicker: View {
         let yearSelection = yearSelectionBinding
         
         return GeometryReader { geometry in
+            VStack(spacing: 8) {
+                
+                HStack(spacing: 0) {
+                    Text("روز")
+                        .font(headerFont)
+                        .foregroundColor(headerColor)
+                        .frame(maxWidth: geometry.size.width * dayScale)
+                    Text("ماه")
+                        .font(headerFont)
+                        .foregroundColor(headerColor)
+                        .frame(maxWidth: geometry.size.width * monthScale)
+                    
+                    Text("سال")
+                        .font(headerFont)
+                        .foregroundColor(headerColor)
+                        .frame(maxWidth: geometry.size.width * yearScale)
+                }
+                
                 HStack(spacing: 0) {
                     dayPicker(daySelection: daySelection, monthSelectionID: monthSelectionID, geometry: geometry)
                     monthPicker(monthSelectionID: monthSelectionBinding, geometry: geometry)
                     yearPicker(yearSelection: yearSelection, geometry: geometry)
                 }
+                
             }
-            .font(.footnote)
-            .frame(minHeight: minHeight)
-            .environment(\.layoutDirection, .rightToLeft)
+            .frame(height: geometry.size.height)
+            
+        }
+        .frame(height: UIScreen.main.bounds.height * 0.3)
+        .environment(\.layoutDirection, .rightToLeft)
     }
 }
 
+@available(iOS 14.0, *)
 struct ShamsiDatePicker_Previews: PreviewProvider {
     static var previews: some View {
         ShamsiDatePicker(selectedDate: .constant(Date()))
